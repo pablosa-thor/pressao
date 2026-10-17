@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Pressão da Cristiane</title>
+<meta name="theme-color" content="#0f6b7a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Pressão">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Figtree:wght@400;500;600&display=swap">
+<style>
+/* Layout: uma coluna estreita, tipo caderneta — hoje no topo, depois médias, gráfico e histórico */
+:root {
+  --bg: #f3f6f7;
+  --surface: #ffffff;
+  --ink: #15262e;
+  --muted: #5d7079;
+  --line: #d8e2e6;
+  --accent: #0f6b7a;
+  --accent-soft: #e0f0f2;
+  --ok: #2f7d4f; --ok-bg: #e3f3e8;
+  --warn: #9a6400; --warn-bg: #fbf0d9;
+  --bad: #b3261e; --bad-bg: #fbe4e1;
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Figtree", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1619; --surface: #172328; --ink: #e4eef1; --muted: #93a7af; --line: #2a3a40;
+    --accent: #5cc2d1; --accent-soft: #173a40;
+    --ok: #7fd3a0; --ok-bg: #173325; --warn: #f0c062; --warn-bg: #3a2d12; --bad: #ff9a90; --bad-bg: #42201d;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1619; --surface: #172328; --ink: #e4eef1; --muted: #93a7af; --line: #2a3a40;
+  --accent: #5cc2d1; --accent-soft: #173a40;
+  --ok: #7fd3a0; --ok-bg: #173325; --warn: #f0c062; --warn-bg: #3a2d12; --bad: #ff9a90; --bad-bg: #42201d;
+  color-scheme: dark;
+}
+html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); background: var(--bg); }
+body { margin: 0; -webkit-text-size-adjust: 100%; background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.5; }
+.wrap { max-width: 640px; margin: 0 auto; padding-block: 24px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 28px; }
+h1, h2 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: 1.9rem; font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: 1.15rem; font-weight: 700; }
+.sub { color: var(--muted); margin: 4px 0 0; }
+.label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+.num { font-variant-numeric: tabular-nums; }
+
+.dayhead { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.daynav { display: flex; align-items: center; gap: 6px; }
+.daynav button, .btn-ghost { background: var(--surface); border: 1px solid var(--line); color: var(--ink); border-radius: 8px; height: 40px; min-width: 40px; padding: 0 12px; font: inherit; cursor: pointer; }
+.daynav input { height: 40px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); font: inherit; padding: 0 8px; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.slots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 560px) { .slots { grid-template-columns: 1fr; } }
+.slot { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.slot.done { border-color: var(--accent); }
+.slot-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.slot-name { font-weight: 600; }
+.slot-time { color: var(--muted); font-size: 0.85rem; }
+.fields { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+.fields label { display: flex; flex-direction: column; gap: 2px; font-size: 0.72rem; color: var(--muted); min-width: 0; }
+.fields input { width: 100%; box-sizing: border-box; height: 44px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); font: 600 1.1rem var(--font-body); text-align: center; font-variant-numeric: tabular-nums; }
+.slot-actions { display: flex; gap: 6px; }
+.btn { flex: 1; height: 40px; border: 0; border-radius: 8px; background: var(--accent); color: var(--surface); font: 600 0.95rem var(--font-body); cursor: pointer; }
+.btn[disabled] { opacity: 0.5; cursor: default; }
+.btn-del { background: transparent; border: 1px solid var(--line); color: var(--muted); border-radius: 8px; height: 40px; padding: 0 10px; font: inherit; font-size: 0.85rem; cursor: pointer; }
+.reading { font-family: var(--font-display); font-size: 1.6rem; font-weight: 700; }
+.reading small { font-family: var(--font-body); font-size: 0.85rem; font-weight: 500; color: var(--muted); }
+
+.avg { background: var(--accent-soft); border-radius: 14px; padding: 18px; display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
+.avg-big { font-family: var(--font-display); font-size: 2.6rem; font-weight: 700; line-height: 1; }
+.avg-big span { font-size: 1rem; color: var(--muted); font-weight: 500; }
+.avg-info { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1; }
+.pill { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 0.82rem; font-weight: 600; width: fit-content; }
+.pill.ok { background: var(--ok-bg); color: var(--ok); }
+.pill.warn { background: var(--warn-bg); color: var(--warn); }
+.pill.bad { background: var(--bad-bg); color: var(--bad); }
+.pill.none { background: var(--surface); color: var(--muted); }
+
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 480px) { .stats { grid-template-columns: 1fr 1fr; } }
+.stat { border-top: 2px solid var(--line); padding-top: 8px; }
+.stat b { display: block; font-family: var(--font-display); font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+
+.chart { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+.chart svg { width: 100%; height: auto; display: block; }
+.legend { display: flex; gap: 14px; font-size: 0.8rem; color: var(--muted); margin-top: 6px; flex-wrap: wrap; }
+.legend i { display: inline-block; width: 12px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 5px; }
+
+.table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: 0.92rem; }
+th, td { padding: 9px 10px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; }
+tr:last-child td { border-bottom: 0; }
+tbody tr { cursor: pointer; }
+tbody tr:hover { background: var(--accent-soft); }
+.empty { color: var(--muted); padding: 16px; text-align: center; }
+
+.note { font-size: 0.82rem; color: var(--muted); }
+.status { font-size: 0.82rem; color: var(--muted); }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-weight: 600; }
+@media (prefers-reduced-motion: no-preference) { .toast { transition: opacity .2s; } }
+[hidden] { display: none !important; }
+.backup { display: flex; gap: 8px; flex-wrap: wrap; }
+.backup .btn-ghost { flex: 1; min-width: 150px; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>Pressão da Cristiane</h1>
+    <p class="sub">Três medições por dia. A média do dia é calculada sozinha.</p>
+  </header>
+
+  <section aria-labelledby="h-dia" style="display:flex;flex-direction:column;gap:14px">
+    <div class="dayhead">
+      <h2 id="h-dia">Hoje</h2>
+      <div class="daynav">
+        <button id="prev" aria-label="Dia anterior">‹</button>
+        <input type="date" id="date" aria-label="Escolher dia">
+        <button id="next" aria-label="Próximo dia">›</button>
+      </div>
+    </div>
+    <div class="slots" id="slots"></div>
+    <div class="avg" id="avg"></div>
+  </section>
+
+  <section aria-labelledby="h-medias" style="display:flex;flex-direction:column;gap:12px">
+    <h2 id="h-medias">Médias</h2>
+    <div class="stats" id="stats"></div>
+  </section>
+
+  <section aria-labelledby="h-grafico" style="display:flex;flex-direction:column;gap:12px">
+    <h2 id="h-grafico">Últimos 14 dias</h2>
+    <div class="chart"><div id="chart"></div>
+      <div class="legend"><span><i style="background:var(--accent)"></i>Máxima (sistólica)</span><span><i style="background:var(--muted)"></i>Mínima (diastólica)</span><span><i style="background:var(--bad);height:1px"></i>Limite 14 por 9</span></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-hist" style="display:flex;flex-direction:column;gap:12px">
+    <h2 id="h-hist">Histórico</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Dia</th><th>Manhã</th><th>Tarde</th><th>Noite</th><th>Média</th></tr></thead>
+      <tbody id="hist"></tbody>
+    </table></div>
+    <p class="note">Toque num dia para ver ou corrigir. Classificação pela Diretriz Brasileira de Hipertensão (2020); serve de referência e não substitui a avaliação do médico.</p>
+    <p class="status" id="status">Carregando…</p>
+  </section>
+
+  <section aria-labelledby="h-backup" style="display:flex;flex-direction:column;gap:12px">
+    <h2 id="h-backup">Cópia de segurança</h2>
+    <p class="note" style="margin:0">As medições ficam guardadas só neste celular. Salve uma cópia de vez em quando (no WhatsApp, no e-mail ou no Drive) para não perder o histórico se trocar de celular ou limpar o navegador.</p>
+    <div class="backup">
+      <button class="btn-ghost" id="exportar">Salvar cópia</button>
+      <button class="btn-ghost" id="importar">Restaurar cópia</button>
+      <input type="file" id="arquivo" accept="application/json,.json" hidden>
+    </div>
+  </section>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const SLOTS = [
+  { key: "manha", name: "Manhã", hint: "ao acordar" },
+  { key: "tarde", name: "Tarde", hint: "depois do almoço" },
+  { key: "noite", name: "Noite", hint: "antes de dormir" },
+];
+const LS_KEY = "pressao-cristiane-v1";
+let dias = {};          // "AAAA-MM-DD" -> { manha:{sis,dia,pulso,hora}, ... }
+let db = null;
+let selected = todayKey();
+let writeChain = Promise.resolve();
+
+function todayKey(d = new Date()) {
+  const z = n => String(n).padStart(2, "0");
+  return d.getFullYear() + "-" + z(d.getMonth() + 1) + "-" + z(d.getDate());
+}
+function shiftKey(key, n) { const [y, m, d] = key.split("-").map(Number); return todayKey(new Date(y, m - 1, d + n)); }
+function fmtDay(key, long) {
+  const [y, m, d] = key.split("-").map(Number);
+  const dt = new Date(y, m - 1, d);
+  return dt.toLocaleDateString("pt-BR", long ? { weekday: "long", day: "numeric", month: "long" } : { weekday: "short", day: "2-digit", month: "2-digit" });
+}
+function readings(day) { return SLOTS.map(s => day && day[s.key]).filter(r => r && r.sis && r.dia); }
+function mean(arr) { return arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null; }
+function dayAvg(day) {
+  const r = readings(day);
+  if (!r.length) return null;
+  const pulsos = r.map(x => x.pulso).filter(Boolean);
+  return { sis: mean(r.map(x => x.sis)), dia: mean(r.map(x => x.dia)), pulso: mean(pulsos), n: r.length };
+}
+function classify(sis, dia) {
+  if (sis == null) return { txt: "Sem medição", cls: "none" };
+  if (sis >= 180 || dia >= 110) return { txt: "Hipertensão estágio 3", cls: "bad" };
+  if (sis >= 160 || dia >= 100) return { txt: "Hipertensão estágio 2", cls: "bad" };
+  if (sis >= 140 || dia >= 90)  return { txt: "Hipertensão estágio 1", cls: "bad" };
+  if (sis >= 130 || dia >= 85)  return { txt: "Pré-hipertensão", cls: "warn" };
+  if (sis >= 120 || dia >= 80)  return { txt: "Normal", cls: "ok" };
+  return { txt: "Ótima", cls: "ok" };
+}
+const r0 = v => Math.round(v);
+// jeito brasileiro de falar: 12 por 8
+function porExtenso(sis, dia) {
+  const f = v => { const x = Math.round(v / 10 * 10) / 10; return Number.isInteger(x) ? String(x) : x.toFixed(1).replace(".", ","); };
+  return f(sis) + " por " + f(dia);
+}
+
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.hidden = false;
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.hidden = true, 2200);
+}
+
+function renderSlots() {
+  const day = dias[selected] || {};
+  const box = document.getElementById("slots");
+  box.innerHTML = "";
+  SLOTS.forEach(s => {
+    const r = day[s.key];
+    const el = document.createElement("div");
+    el.className = "slot" + (r ? " done" : "");
+    const top = `<div class="slot-top"><span class="slot-name">${s.name}</span><span class="slot-time">${r && r.hora ? r.hora : s.hint}</span></div>`;
+    if (r && !el._editing) {
+      el.innerHTML = top +
+        `<div class="reading num">${r.sis}/${r.dia} <small>mmHg${r.pulso ? " · " + r.pulso + " bpm" : ""}</small></div>` +
+        `<span class="pill ${classify(r.sis, r.dia).cls}">${classify(r.sis, r.dia).txt}</span>` +
+        `<div class="slot-actions"><button class="btn-ghost" data-act="edit" style="flex:1">Corrigir</button><button class="btn-del" data-act="del">Apagar</button></div>`;
+      el.querySelector('[data-act="edit"]').onclick = () => { el.replaceWith(formSlot(s, r)); };
+      el.querySelector('[data-act="del"]').onclick = () => {
+        const b = el.querySelector('[data-act="del"]');
+        if (b.dataset.sure) { saveSlot(s.key, null); } else { b.dataset.sure = 1; b.textContent = "Confirmar"; }
+      };
+      box.appendChild(el);
+    } else {
+      box.appendChild(formSlot(s, null));
+    }
+  });
+}
+
+function formSlot(s, r) {
+  const el = document.createElement("form");
+  el.className = "slot";
+  const id = k => `in-${s.key}-${k}`;
+  el.innerHTML = `<div class="slot-top"><span class="slot-name">${s.name}</span><span class="slot-time">${s.hint}</span></div>
+    <div class="fields">
+      <label for="${id("sis")}">Máxima<input id="${id("sis")}" inputmode="numeric" pattern="[0-9]*" placeholder="120" value="${r ? r.sis : ""}"></label>
+      <label for="${id("dia")}">Mínima<input id="${id("dia")}" inputmode="numeric" pattern="[0-9]*" placeholder="80" value="${r ? r.dia : ""}"></label>
+      <label for="${id("pul")}">Pulso<input id="${id("pul")}" inputmode="numeric" pattern="[0-9]*" placeholder="opc." value="${r && r.pulso ? r.pulso : ""}"></label>
+    </div>
+    <div class="slot-actions"><button class="btn" type="submit">Salvar</button>${r ? '<button class="btn-del" type="button" data-act="cancel">Voltar</button>' : ""}</div>`;
+  el.addEventListener("submit", e => {
+    e.preventDefault();
+    const sis = parseInt(el.querySelector("#" + id("sis")).value, 10);
+    const dia = parseInt(el.querySelector("#" + id("dia")).value, 10);
+    const pul = parseInt(el.querySelector("#" + id("pul")).value, 10);
+    if (!(sis >= 60 && sis <= 260) || !(dia >= 30 && dia <= 160)) { toast("Confira os números: máxima entre 60 e 260, mínima entre 30 e 160"); return; }
+    if (dia >= sis) { toast("A mínima precisa ser menor que a máxima"); return; }
+    const now = new Date();
+    const hora = selected === todayKey() ? now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : (r && r.hora) || "";
+    saveSlot(s.key, { sis, dia, pulso: pul > 20 && pul < 250 ? pul : null, hora });
+  });
+  const c = el.querySelector('[data-act="cancel"]');
+  if (c) c.onclick = renderSlots;
+  return el;
+}
+
+function saveSlot(slotKey, value) {
+  const key = selected;
+  const day = Object.assign({}, dias[key] || {});
+  if (value) day[slotKey] = value; else delete day[slotKey];
+  day.data = key;
+  dias[key] = day;
+  renderAll();
+  toast(value ? "Medição salva" : "Medição apagada");
+  persist(key, day);
+}
+
+function persist(key, day) { saveLocal(); }
+function saveLocal() { try { localStorage.setItem(LS_KEY, JSON.stringify(dias)); } catch (e) {} }
+function loadLocal() { try { return JSON.parse(localStorage.getItem(LS_KEY) || "{}") || {}; } catch (e) { return {}; } }
+function setStatus(t) { document.getElementById("status").textContent = t; }
+
+function renderAvg() {
+  const a = dayAvg(dias[selected]);
+  const el = document.getElementById("avg");
+  const isToday = selected === todayKey();
+  document.getElementById("h-dia").textContent = isToday ? "Hoje" : fmtDay(selected, true).replace(/^./, c => c.toUpperCase());
+  document.getElementById("next").disabled = isToday;
+  if (!a) {
+    el.innerHTML = `<div class="avg-info"><span class="label">Média do dia</span><span>Nenhuma medição ainda. Preencha a máxima e a mínima que aparecem no aparelho e toque em Salvar.</span></div>`;
+    return;
+  }
+  const c = classify(a.sis, a.dia);
+  el.innerHTML = `<div class="avg-big num">${r0(a.sis)}/${r0(a.dia)} <span>mmHg</span></div>
+    <div class="avg-info"><span class="label">Média do dia · ${a.n} de 3 medições</span>
+    <span>${porExtenso(a.sis, a.dia)}${a.pulso ? " · pulso " + r0(a.pulso) + " bpm" : ""}</span>
+    <span class="pill ${c.cls}">${c.txt}</span></div>`;
+}
+
+function periodAvg(nDays) {
+  const keys = [];
+  for (let i = 0; i < nDays; i++) keys.push(shiftKey(todayKey(), -i));
+  const r = keys.flatMap(k => readings(dias[k]));
+  if (!r.length) return null;
+  return { sis: mean(r.map(x => x.sis)), dia: mean(r.map(x => x.dia)), n: r.length };
+}
+
+function renderStats() {
+  const p7 = periodAvg(7), p30 = periodAvg(30);
+  const totalDias = Object.keys(dias).filter(k => readings(dias[k]).length).length;
+  const cell = (label, p, extra) => `<div class="stat"><span class="label">${label}</span><b>${p ? r0(p.sis) + "/" + r0(p.dia) : "—"}</b><span class="note">${p ? p.n + " medições" : extra}</span></div>`;
+  document.getElementById("stats").innerHTML =
+    cell("Média 7 dias", p7, "sem dados") + cell("Média 30 dias", p30, "sem dados") +
+    `<div class="stat"><span class="label">Dias anotados</span><b>${totalDias}</b><span class="note">desde o início</span></div>`;
+}
+
+function renderChart() {
+  const keys = []; for (let i = 13; i >= 0; i--) keys.push(shiftKey(todayKey(), -i));
+  const pts = keys.map(k => ({ k, a: dayAvg(dias[k]) }));
+  const W = 600, H = 220, L = 34, R = 10, T = 12, B = 26;
+  const lo = 50, hi = 190;
+  const x = i => L + i * (W - L - R) / 13;
+  const y = v => T + (hi - v) * (H - T - B) / (hi - lo);
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Média diária dos últimos 14 dias">`;
+  [60, 80, 100, 120, 140, 160, 180].forEach(v => {
+    s += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/>`;
+    s += `<text x="${L - 6}" y="${y(v) + 4}" text-anchor="end" font-size="11" fill="var(--muted)">${v}</text>`;
+  });
+  s += `<line x1="${L}" x2="${W - R}" y1="${y(140)}" y2="${y(140)}" stroke="var(--bad)" stroke-dasharray="4 4" stroke-width="1.2"/>`;
+  s += `<line x1="${L}" x2="${W - R}" y1="${y(90)}" y2="${y(90)}" stroke="var(--bad)" stroke-dasharray="4 4" stroke-width="1.2"/>`;
+  pts.forEach((p, i) => { if (i % 2 === 1 || i === 13) s += `<text x="${x(i)}" y="${H - 6}" text-anchor="middle" font-size="11" fill="var(--muted)">${p.k.slice(8)}/${p.k.slice(5, 7)}</text>`; });
+  const line = (f, color) => {
+    let d = "", pen = false;
+    pts.forEach((p, i) => { if (p.a) { d += (pen ? "L" : "M") + x(i) + " " + y(f(p.a)) + " "; pen = true; } else pen = false; });
+    let out = d ? `<path d="${d}" fill="none" stroke="${color}" stroke-width="2.2" stroke-linejoin="round"/>` : "";
+    pts.forEach((p, i) => { if (p.a) out += `<circle cx="${x(i)}" cy="${y(f(p.a))}" r="${i === 13 ? 5 : 3.5}" fill="${color}"/>`; });
+    return out;
+  };
+  s += line(a => a.sis, "var(--accent)") + line(a => a.dia, "var(--muted)");
+  if (!pts.some(p => p.a)) s += `<text x="${W / 2}" y="${H / 2}" text-anchor="middle" font-size="14" fill="var(--muted)">As médias diárias aparecem aqui</text>`;
+  document.getElementById("chart").innerHTML = s + "</svg>";
+}
+
+function renderHist() {
+  const keys = Object.keys(dias).filter(k => readings(dias[k]).length).sort().reverse();
+  const tb = document.getElementById("hist");
+  if (!keys.length) { tb.innerHTML = `<tr><td colspan="5" class="empty">Os dias anotados aparecem aqui.</td></tr>`; return; }
+  tb.innerHTML = keys.map(k => {
+    const d = dias[k], a = dayAvg(d), c = classify(a.sis, a.dia);
+    const cell = r => r ? `${r.sis}/${r.dia}` : `<span style="color:var(--muted)">—</span>`;
+    return `<tr data-k="${k}"><td>${fmtDay(k)}</td>${SLOTS.map(s => `<td>${cell(d[s.key])}</td>`).join("")}<td><span class="pill ${c.cls}">${r0(a.sis)}/${r0(a.dia)}</span></td></tr>`;
+  }).join("");
+  tb.querySelectorAll("tr[data-k]").forEach(tr => tr.onclick = () => { setDay(tr.dataset.k); window.scrollTo({ top: 0, behavior: "smooth" }); });
+}
+
+function setDay(k) {
+  if (k > todayKey()) k = todayKey();
+  selected = k; document.getElementById("date").value = k; renderAll();
+}
+function renderAll() { renderSlots(); renderAvg(); renderStats(); renderChart(); renderHist(); }
+
+document.getElementById("prev").onclick = () => setDay(shiftKey(selected, -1));
+document.getElementById("next").onclick = () => setDay(shiftKey(selected, 1));
+document.getElementById("date").max = todayKey();
+document.getElementById("date").onchange = e => { if (e.target.value) setDay(e.target.value); };
+
+dias = loadLocal();
+setDay(todayKey());
+setStatus("Guardado neste celular. Funciona sem internet.");
+
+// pede ao navegador para não apagar os dados sozinho
+if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+
+// vira o dia sozinho se o app ficar aberto de um dia para o outro
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) {
+    document.getElementById("date").max = todayKey();
+    if (selected > todayKey()) setDay(todayKey());
+    renderAll();
+  }
+});
+
+document.getElementById("exportar").onclick = async () => {
+  const nome = "pressao-cristiane-" + todayKey() + ".json";
+  const texto = JSON.stringify({ app: "pressao-cristiane", versao: 1, salvoEm: new Date().toISOString(), dias }, null, 1);
+  const file = new File([texto], nome, { type: "application/json" });
+  try {
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: "Cópia das medições de pressão" });
+      return;
+    }
+  } catch (e) { if (e && e.name === "AbortError") return; }
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(file); a.download = nome;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  toast("Cópia salva em Downloads");
+};
+document.getElementById("importar").onclick = () => document.getElementById("arquivo").click();
+document.getElementById("arquivo").onchange = async e => {
+  const f = e.target.files[0]; e.target.value = "";
+  if (!f) return;
+  try {
+    const obj = JSON.parse(await f.text());
+    const vindos = obj && obj.dias;
+    if (!vindos || typeof vindos !== "object") throw new Error();
+    let n = 0;
+    Object.keys(vindos).forEach(k => {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(k)) return;
+      const atual = Object.assign({}, dias[k] || {});
+      SLOTS.forEach(sl => { const r = vindos[k][sl.key]; if (r && r.sis && r.dia && !atual[sl.key]) { atual[sl.key] = r; n++; } });
+      atual.data = k; dias[k] = atual;
+    });
+    saveLocal(); renderAll();
+    toast(n ? n + " medições restauradas" : "Nada novo nessa cópia");
+  } catch (err) { toast("Esse arquivo não é uma cópia deste app"); }
+};
+
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+</script>
+</body>
+</html>
