@@ -1,5 +1,5 @@
 // Guarda o app no celular para abrir sem internet. Mude VERSAO a cada atualização.
-const VERSAO = "pressao-v1";
+const VERSAO = "pressao-v2";
 const ARQUIVOS = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png", "icon-180.png"];
 
 self.addEventListener("install", e => {
